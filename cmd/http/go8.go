@@ -1,6 +1,7 @@
 package main
 
 import (
+	"eight/pkg/masuk"
 	"flag"
 
 	"github.com/go-chi/httplog"
@@ -95,7 +96,10 @@ func main() {
 
 	val := validation.New()
 
-	h, err := http.NewService(httpCfg, a, logger, val)
+	//authenticator, storeCache := guardian.New()
+	authenticator := masuk.New("my_secret_key")
+
+	h, err := http.NewService(httpCfg, a, logger, val, authenticator)
 	if err != nil {
 		logger.Error().Err(err)
 		return
