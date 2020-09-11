@@ -18,6 +18,12 @@ func Router(h *Handlers, logger zerolog.Logger) *chi.Mux {
 	r.Use(httplog.RequestLogger(logger))
 	r.Use(middleware.Cors)
 
+	//r.Post("/test", middleware.Logger2(middleware.Param(h.Authenticator, h.Cache, h.HandleReady())))
+	r.Post("/test", middleware.Authenticate(h.Authenticator, h.HandleReady()))
+	r.Get("/auth/me", middleware.Authenticate(h.Authenticator, h.Me()))
+	r.Post("/auth/register", h.Register())
+	r.Post("/auth/login", h.Login())
+
 	r.Get("/health/liveness", h.HandleLive())
 	r.Get("/health/readiness", h.HandleReady())
 

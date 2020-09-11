@@ -1,10 +1,6 @@
 package api
 
 import (
-	"net/http"
-
-	"github.com/go-chi/render"
-
 	"eight/internal/domain/authors"
 	"eight/internal/domain/books"
 )
@@ -21,21 +17,4 @@ func NewService(bs *books.HandlerBooks, as *authors.HandlerAuthors) (*API, error
 		books:   bs,
 		authors: as,
 	}, nil
-}
-
-func (a API) HandleLive() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		_, _ = w.Write([]byte("."))
-	}
-}
-
-func (a API) HandleReady() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		err := a.books.Ping()
-		if err != nil {
-			render.Status(r, http.StatusInternalServerError)
-			render.JSON(w, r, map[string]string{"error": err.Error()})
-			return
-		}
-	}
 }

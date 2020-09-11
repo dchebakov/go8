@@ -1,7 +1,6 @@
 package main
 
 import (
-	"eight/pkg/masuk"
 	"flag"
 
 	"github.com/go-chi/httplog"
@@ -11,7 +10,9 @@ import (
 	"eight/internal/datastore"
 	"eight/internal/domain/authors"
 	"eight/internal/domain/books"
+	"eight/internal/server/grpc"
 	"eight/internal/server/http"
+	"eight/pkg/masuk"
 	"eight/pkg/redis"
 	"eight/pkg/validation"
 )
@@ -94,16 +95,19 @@ func main() {
 		return
 	}
 
+	grpcConn := grpc.New()
+
 	val := validation.New()
 
 	//authenticator, storeCache := guardian.New()
-	authenticator := masuk.New("my_secret_key")
+	authenticator := masuk.New("somelongrandomstringsomelongrandomstringsomelongrandomstring")
 
-	h, err := http.NewService(httpCfg, a, logger, val, authenticator)
+	h, err := http.NewService(grpcConn, httpCfg, a, logger, val, authenticator)
 	if err != nil {
 		logger.Error().Err(err)
 		return
 	}
 
 	h.Start(logger)
+
 }

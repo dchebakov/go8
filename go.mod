@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/friendsofgo/errors v0.9.2
 	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/go-chi/cors v1.1.1
@@ -26,6 +27,8 @@ require (
 	github.com/volatiletech/strmangle v0.0.1
 	golang.org/x/net v0.0.0-20200813134508-3edf25e44fcc // indirect
 	golang.org/x/tools v0.0.0-20200813231717-0a73ddcff9b8 // indirect
+	google.golang.org/grpc v1.30.0
+	google.golang.org/protobuf v1.23.0
 	gopkg.in/yaml.v2 v2.3.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c
 )

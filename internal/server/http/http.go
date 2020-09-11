@@ -1,6 +1,7 @@
 package http
 
 import (
+	"eight/pkg/masuk"
 	"fmt"
 	"net/http"
 	"os"
@@ -11,13 +12,19 @@ import (
 	"github.com/rs/zerolog"
 
 	"eight/internal/api"
+	"eight/internal/server/grpc"
 )
 
 // Handlers struct has all the dependencies required for HTTP handlers
 type Handlers struct {
-	Api        *api.API
-	Logger     zerolog.Logger
-	Validation *validator.Validate
+	Grpc          *grpc.Grpc
+	Api           *api.API
+	Logger        zerolog.Logger
+	Validation    *validator.Validate
+	Authenticator masuk.Authenticator
+
+	//Authenticator auth.Authenticator
+	//Cache store.Cache
 }
 
 // HTTP struct holds all the dependencies required for starting HTTP server
@@ -51,11 +58,14 @@ func (h *HTTP) GetServer() *chi.Mux {
 	return h.router
 }
 
-func NewService(cfg *Config, a *api.API, log zerolog.Logger, validation *validator.Validate) (*HTTP, error) {
+func NewService(conn *grpc.Grpc, cfg *Config, a *api.API, log zerolog.Logger, validation *validator.Validate, authenticator masuk.Authenticator) (*HTTP, error) {
 	h := &Handlers{
-		Api:        a,
-		Logger:     log,
-		Validation: validation,
+		Grpc:          conn,
+		Api:           a,
+		Logger:        log,
+		Validation:    validation,
+		Authenticator: authenticator,
+		//Cache: cache,
 	}
 
 	serverHandler := Router(h, log)
