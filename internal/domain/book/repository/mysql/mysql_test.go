@@ -1,27 +1,24 @@
-package postgres
+package mysql
 
 import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/joho/godotenv"
 	"log"
-	"net"
 	"os"
-	"runtime"
 	"testing"
 	"time"
 
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
-	"github.com/joho/godotenv"
 	_ "github.com/joho/godotenv/autoload"
-	_ "github.com/lib/pq"
-	"github.com/ory/dockertest"
-	"github.com/ory/dockertest/docker"
+	//_ "github.com/lib/pq"
+	"github.com/ory/dockertest/v3"
 	"github.com/stretchr/testify/assert"
 	"github.com/volatiletech/null/v8"
 
 	"github.com/gmhafiz/go8/cmd/extmigrate/migrate"
-	"github.com/gmhafiz/go8/configs"
 	"github.com/gmhafiz/go8/internal/domain/book"
 	"github.com/gmhafiz/go8/internal/models"
 	"github.com/gmhafiz/go8/internal/utility/filter"
@@ -40,55 +37,28 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Fatalln(err)
 	}
+	path, _ := os.Getwd()
+	fmt.Println(path)
 	err = godotenv.Load(".env")
 	if err != nil {
 		log.Println(err)
 	}
-	cfg := configs.DockerTestCfg()
+	//cfg := configs.DockerTestCfg()
 
 	pool, err := dockertest.NewPool("")
 	if err != nil {
 		log.Fatalf("could not connect to docker: %s", err)
 	}
 
-	opts := dockertest.RunOptions{
-		Repository: "postgres",
-		Tag:        "13",
-		Env: []string{
-			"POSTGRES_USER=" + cfg.User,
-			"POSTGRES_PASSWORD=" + cfg.Pass,
-			"POSTGRES_DB=" + cfg.Name,
-			"TZ=UTC",
-			"PG_TZ=UTC",
-		},
-		ExposedPorts: []string{"5432"},
-		PortBindings: map[docker.Port][]docker.PortBinding{
-			"5432": {
-				{HostIP: "0.0.0.0", HostPort: cfg.Port},
-			},
-		},
-	}
-
-	resource, err := pool.RunWithOptions(&opts, func(config *docker.HostConfig) {
-		// set AutoRemove to true so that stopped container goes away by itself
-		config.AutoRemove = true
-		config.RestartPolicy = docker.RestartPolicy{
-			Name: "no",
-		}
-	})
+	// pulls an image, creates a container based on it and runs it
+	resource, err := pool.Run("mysql", "5.7", []string{"MYSQL_ROOT_PASSWORD=secret"})
 	if err != nil {
-		log.Fatalln("error running docker container")
-	}
-
-	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		cfg.Host, cfg.Port, cfg.User, cfg.Pass, cfg.Name)
-	// Docker layer network is different on Mac
-	if runtime.GOOS == "darwin" {
-		cfg.Host = net.JoinHostPort(resource.GetBoundIP("5432/tcp"), resource.GetPort("5432/tcp"))
+		log.Fatalf("Could not start resource: %s", err)
 	}
 
 	if err = pool.Retry(func() error {
-		db, err := sqlx.Open(cfg.Driver, dsn)
+		db, err := sqlx.Open("mysql", fmt.Sprintf("root:secret@(localhost:%s)/mysql",
+			resource.GetPort("3306/tcp")))
 		if err != nil {
 			return err
 		}
@@ -99,10 +69,6 @@ func TestMain(m *testing.M) {
 	}
 
 	code := m.Run()
-
-	if err := pool.Purge(resource); err != nil {
-		log.Printf("could not purge resource: %s", err)
-	}
 
 	os.Exit(code)
 }

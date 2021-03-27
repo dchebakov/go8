@@ -22,7 +22,7 @@ func (u *BookUseCase) Create(ctx context.Context, book *models.Book) (*models.Bo
 	if err != nil {
 		return nil, err
 	}
-	bookFound, err := u.bookRepo.Read(context.Background(), bookID)
+	bookFound, err := u.bookRepo.Read(ctx, bookID)
 	if err != nil {
 		return nil, err
 	}

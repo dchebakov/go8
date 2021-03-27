@@ -6,7 +6,6 @@ import (
 
 type DockerTest struct {
 	Driver  string
-	Dialect string
 	Host    string
 	Port    string
 	Name    string
